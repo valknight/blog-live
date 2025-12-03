@@ -1,0 +1,17 @@
+<rss version="2.0">
+  <channel>
+    <title>Val Knight's Blog (tag: meta)</title>
+    <link>Place for Val to write things! Subscribe to this to get new posts as they're uploaded</link>
+    <description>Val Knight's Blog - this RSS feed returns all posts</description>
+    <item>
+      <title>Hello!</title>
+      <link>https://blog.valknight.xyz./hello_world.html</link>
+      <description>new me, new blog :)</description>
+    </item>
+    <item>
+      <title>Cancelling GitHub Pro turns your blog into a shady gambling website</title>
+      <link>https://blog.valknight.xyz./gambling_hack.html</link>
+      <description>(this is my fault but I thought the title is fun)</description>
+    </item>
+  </channel>
+</rss>

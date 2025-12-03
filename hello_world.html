@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/code.css">
+    <title suffix=" | val's blog">Hello!  | val's blog</title>
+    <meta name="twitter:card" content="summary">
+    <meta property="og:title" set-content content="Hello!">
+    <meta property="og:description" set-content remove-if-empty content="new me, new blog :)">
+</head>
+
+<body>
+    <div class="header"><a class="neutral-link" href="/">val knight's blog</a> > <a class="neutral-link" href-path href="./hello_world.html">Hello!</a></div>
+    <div class="post">
+        <div class="post-begin">
+            <h1 class="post-title">Hello!</h1>
+            <div class="post-subtitle" remove-if-empty>new me, new blog :)</div>
+            <small><div remove-if-empty>22:51 - 26/10/2024</div></small>
+            <hr class="hr-header">
+        </div>
+        <div class="content"><h2 id="woah-its-a-blog">Woah, it's a blog!</h2>
+<p>yeah! i used to have a blog on here ages ago, but, I stopped writing on it. a few things caused that to be the case:</p>
+<ol>
+<li>Breakages against the upstream version of the tool I used (Hugo)</li>
+<li>Usage of Cohost and Tumblr being easily accessible blogging platforms.</li>
+<li>Not loving everythign I had written there</li>
+</ol>
+<p>The last point is still relevant, and those posts won't be coming back here :)</p>
+<p>However - the second point is less relevant now. Cohost no longer exists 💔, and, I don't particularly want to use software or a platform owned by Matt Mullenwegg <sup><a href="#references">1</a></sup> <sup><a href="#references">2</a></sup> <sup><a href="#references">3</a></sup>.</p>
+<p>My first thought was to go back to Hugo - I absolutely know I was using it wrong (with a wacky build script that I ran locally, that then <code>git push --force</code>'d itself onto a second GitHub repo) - but, I figured I should go the rite of passage, and just built my own static site generator.</p>
+<p>So! That's what this is running on. It's a dotnet tool, with the bulk of the work done by the amazing library <code>Markdig</code><sup><a href="#references">4</a></sup> to parse Markdown, and good ol' <code>HTML Agility Pack</code> <sup><a href="#references">5</a></sup> to handle templating.</p>
+<p>Combined with a script called by <code>entr</code><sup><a href="#references">6</a></sup>` and VS Code's Live preview plugin, I have a pretty neat &quot;write markdown on the left, see live preview update on the right&quot;.</p>
+<h2 id="how-do-i-handle-markdown-code-formatting">How do I handle markdown &amp; code-formatting?</h2>
+<p><code>Markdig</code> is excellent, and, so are it's plugins for code highlighting. I'm using <code>Markdown.ColorCode</code> <sup><a href="#references">7</a></sup>, which has been painless - apart from one quirk in how the CSS mode handles recognised languages, vs. raw codeblocks. For context, I'm using <code>Markdown.ColorCode</code> in <code>css</code> mode, so I can setup styling in individual CSS files.</p>
+<p>My main issue is I was struggling to find a way to target <em>all</em> codeblocks by my CSS - and not just by language.</p>
+<pre><code>This is a default code block - it's not targettable with a generic class
+</code></pre>
+<div class="csharp"><pre>
+<span class="comment">// However, this will instead be easily targettable with &lt;div class=&quot;csharp&quot;&gt;</span>
+</pre></div>
+<p>The workaround is the wonderful, fairly new <code>:has</code> CSS selector - specifically, using the following rule:</p>
+<div class="css"><pre>
+<span class="comment">/* languages are because languages are &lt;div class=&quot;language-name&quot;&gt;
+/* if not recognised, it defaults back to &lt;pre&gt;&lt;code&gt; */</span>
+pre:has(code),<span class="cssSelector"> .csharp</span>, <span class="cssSelector">.python</span>, <span class="cssSelector">.css </span>{
+    <span class="cssPropertyName">foo</span>: <span class="cssPropertyValue">bar</span>;
+}
+</pre></div>
+<pre><code>This block is using the ```generic language workaround.
+It's... fine, although I wish it was slightly nicer.
+</code></pre>
+<p>I need to have a deeper dig into how Markdig works, and if there's either something else I can use - or, how hard it is for me to roll my own solution here.</p>
+<h2 id="whats-the-writing-experience-like">What's the writing experience like?</h2>
+<p>Pretty pleasant! Majortiy of the time, you're writing markdown - so all the good and bad that comes with that.  For the actual preview of how it looks on a site - <code>entr</code> is invoking a build script whenever I save a file.</p>
+<p>For metadata - I'm using a method I don't love, but, it does work. Theoretically, I parse &quot;tags&quot;, but I currently don't put these anywhere - that's a later problem 😄. When there's an issue with metadata, I also flag this up in the CLI output, so I can easily spot this.</p>
+<p>As for the CLI output - I have these nice tables, thanks to <code>Spectre.Console</code> <sup><a href="#references">8</a></sup>.</p>
+<p><img src="assets/images/hello_world_terminal_output.webp" alt="Screenshot of terminal output"></p>
+<p>Spectre is a great <code>Rich</code>-inspired dotnet library for console output, and I can't recommend it enough. I only really needed to provide a few helpers around it:</p>
+<ul>
+<li><code>DefaultTable</code> for use between both steps to ensure consistent styling</li>
+<li><code>DefaultTableReport</code> which adds a row, and calls <code>ctx.Refresh</code></li>
+<li><code>FormatPathWithOpen</code> - this presents a path, with a clickable <b>Open</b> button next to it, which opens the file in the associated application</li>
+</ul>
+<div class="csharp"><pre>
+<span class="keyword">var</span> table = TUIHelpers.DefaultTable(<span class="string">&quot;HTML Generator&quot;</span>);
+<span class="keyword">await</span> AnsiConsole.Live(table)
+    .Overflow(VerticalOverflow.Visible)
+    .Cropping(VerticalOverflowCropping.Top)
+    .StartAsync(<span class="keyword">async</span> ctx =&gt;
+    {
+        <span class="comment">/* some generation stuff here */</span>
+        TUIHelpers.DefaultTableReport(
+            table,
+            ctx,
+            <span class="string">&quot;post name&quot;</span>,
+            <span class="string">&quot;post path&quot;</span>,
+            TUIHelpers.FormatPathWithOpen(<span class="string">&quot;output path&quot;</span>),
+            <span class="string">&quot;[green]OK[/]&quot;</span>,
+            profiler.GetMs()
+        );
+    });
+</pre></div>
+<p>The <em><strong>Open</strong></em> button is very handy for opening up pages, and I'm going to take advantage of this for <em>so</em> many future projects 😆.</p>
+<p>For future work on this - I'd love for this to be just something I can wrap in a using block - e.g:</p>
+<div class="csharp"><pre>
+<span class="keyword">using</span> (<span class="keyword">var</span> table = <span class="keyword">new</span> DefaultTable(<span class="string">&quot;HTML Generator&quot;</span>))
+{
+    table.Report(<span class="string">&quot;post name&quot;</span>, <span class="string">&quot;post path&quot;</span>, <span class="comment">/* etc etc */</span>);
+}
+</pre></div>
+<p>This should be doable with a bit of massaging - I just need to have a little think about how I want to do this 😅, and it's not really a priority.</p>
+<h2 id="what-else-will-go-here">What else will go here?</h2>
+<p>Interesting things! At least, that's the hope. I'm currently about to start doing <a href="https://itch.io/jam/procjam">PROCJAM 2024</a>, and I should have something interesting here once that's done. Apart from that, I want to port Unity to SVG out of Cohost land - because I think it's a cool demo, and I fear it's going to die once Cohost starts redirecting to archival.</p>
+<h2 id="references">References</h2>
+<ol>
+<li><a href="https://techcrunch.com/2024/02/22/tumblr-ceo-publicly-spars-with-trans-user-over-account-ban-revealing-private-account-names-in-the-process/">Tumblr CEO publicly spars with trans user over account ban, revealing private account names in the process</a>, Amanda Silberling, 22-02-2024</li>
+<li><a href="https://www.404media.co/automattic-buyout-offer-wordpress-matt-mullenweg/">Employees Describe an Environment of Paranoia and Fear Inside Automattic Over WordPress Chaos</a>, Samantha Cole, 17-10-2024</li>
+<li><a href="https://www.theverge.com/2024/10/2/24260158/automattic-demand-wp-engine-revenue-wordpress-battle">Automattic demanded a cut of WP Engine’s revenue before starting WordPress battle</a>, Emma Roth, 02-10-2024</li>
+<li><a href="https://github.com/xoofx/markdig">Markdig</a>, Alexandre Mutel</li>
+<li><a href="https://github.com/zzzprojects/html-agility-pack">HTML Agility Pack</a>, ZZZ Projects</li>
+<li><a href="https://github.com/eradman/entr">Entr</a>, Eric Radman</li>
+<li><a href="https://github.com/wbaldoumas/markdown-colorcode">Markdown.ColorCode</a>, Will Baldoumas</li>
+<li><a href="https://github.com/spectreconsole/spectre.console">Spectre.Console</a>, Patrik Svensson, Phil Scott, Nils Andresen</li>
+</ol>
+</div>
+    </div>
+    <div class="footer">
+        tags
+        <ul><li class="tag-list-item"><a href="tag_dev.html">dev (2)</a> | <a href="feed_tag_dev.rss">(RSS)</a></li><li class="tag-list-item"><a href="tag_meta.html">meta (2)</a> | <a href="feed_tag_meta.rss">(RSS)</a></li></ul>
+        Val Knight, 2024<br>
+        <a href="feed.rss">RSS feed</a> <a href="https://www.valknight.xyz/">Main website</a>
+    </div>
+</body>
+
+</html>
