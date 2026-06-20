@@ -1,0 +1,34 @@
+<rss version="2.0">
+  <channel>
+    <title>Val Knight's Blog</title>
+    <link>Place for Val to write things! Subscribe to this to get new posts as they're uploaded</link>
+    <description>Val Knight's Blog - this RSS feed returns all posts</description>
+    <item>
+      <title>nine games I think you should play</title>
+      <link>https://blog.valknight.xyz/nine-games-i-like.html</link>
+      <description>
+      </description>
+    </item>
+    <item>
+      <title>playing with Gender Pay Gap Data</title>
+      <link>https://blog.valknight.xyz/messing_with_paygap_data.html</link>
+      <description>
+      </description>
+    </item>
+    <item>
+      <title>Framework? I sure hope it does</title>
+      <link>https://blog.valknight.xyz/framebroken.html</link>
+      <description>the good, the bad, and the very ugly of the framework laptop</description>
+    </item>
+    <item>
+      <title>Cancelling GitHub Pro turns your blog into a shady gambling website</title>
+      <link>https://blog.valknight.xyz/gambling_hack.html</link>
+      <description>(this is my fault but I thought the title is fun)</description>
+    </item>
+    <item>
+      <title>Hello!</title>
+      <link>https://blog.valknight.xyz/hello_world.html</link>
+      <description>new me, new blog :)</description>
+    </item>
+  </channel>
+</rss>
